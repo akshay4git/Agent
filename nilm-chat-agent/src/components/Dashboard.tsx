@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import ElectricalMetrics from './ElectricalMetrics';
 import { FiRefreshCw } from 'react-icons/fi';
-import { getMockElectricalData } from '../services/mockService';
 
 interface ElectricalData {
   id: string;
@@ -15,9 +14,6 @@ interface ElectricalData {
   timestamp: string;
 }
 
-// Check if we should use mock data
-const USE_MOCK_DATA = true; // Set to false when your backend is ready
-
 const Dashboard = () => {
   const [data, setData] = useState<ElectricalData[]>([]);
   const [loading, setLoading] = useState(false);
@@ -25,24 +21,13 @@ const Dashboard = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      if (USE_MOCK_DATA) {
-        // Use mock data
-        const mockData = getMockElectricalData();
-        setData(mockData);
-      } else {
-        // Use actual backend
-        const response = await axios.get('http://localhost:8000/current-data');
-        setData(response.data);
-      }
-    } catch (error) {
+      const response = await axios.get('http://localhost:8000/current-data');
+      setData(response.data);
+    } 
+    catch (error) {
       console.error('Failed to fetch electrical data', error);
-      
-      // Fallback to mock data
-      if (!USE_MOCK_DATA) {
-        const mockData = getMockElectricalData();
-        setData(mockData);
-      }
-    } finally {
+    } 
+    finally {
       setLoading(false);
     }
   };

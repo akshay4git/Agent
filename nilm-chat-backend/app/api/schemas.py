@@ -4,6 +4,7 @@ from datetime import datetime
 
 # Electrical Data Schemas
 class ElectricalDataBase(BaseModel):
+    timestamp: datetime
     voltage: float
     current: float
     real_power: float
@@ -14,6 +15,7 @@ class ElectricalDataBase(BaseModel):
     thd: float
     real_power_watt: float
     cluster: int
+    device_state: str
 
 class ElectricalDataCreate(ElectricalDataBase):
     timestamp: datetime = Field(default_factory=datetime.now)

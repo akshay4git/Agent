@@ -1,10 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from app.api.router import api_router
 from app.config import settings
 from app.database import engine, Base
-from app.services.llm_service import initialize_model
+from app.services.llm_service import llm_service
+
 
 # Create all tables in the database
 Base.metadata.create_all(bind=engine)
@@ -41,8 +42,10 @@ async def startup_event():
     # Initialize the Flan-T5 model on startup
     if settings.LLM_PROVIDER == "flan-t5":
         print(f"Initializing Flan-T5 model: {settings.MODEL_NAME}")
-        await initialize_model()
+        await llm_service.initialize_model()
         print("Model initialization complete")
+        
+
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

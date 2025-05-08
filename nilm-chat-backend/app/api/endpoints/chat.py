@@ -4,8 +4,9 @@ import uuid
 from app.database import get_db
 from app.api.schemas import ChatRequest, ChatResponse
 from app.models.chat import ChatSession, ChatMessage
-from app.services.llm_service import get_llm_response
+from app.services.llm_service import llm_service
 from app.api.schemas import MessageResponse
+from app.config import settings
 
 router = APIRouter()
 
@@ -33,15 +34,17 @@ async def chat_with_assistant(
     db.add(user_message)
     db.commit()
     
-    # Get chat history for context
+    # Get chat history for context, limited by MAX_CONVERSATION_HISTORY
     history = db.query(ChatMessage).filter(
         ChatMessage.session_id == session_id
-    ).order_by(ChatMessage.timestamp).all()
+    ).order_by(ChatMessage.timestamp.desc()).limit(settings.MAX_CONVERSATION_HISTORY).all()
     
-    conversation_history = [(msg.role, msg.content) for msg in history]
+    # Reverse to maintain chronological order
+    conversation_history = [(msg.role, msg.content) for msg in history[::-1]]
     
     # Get response from LLM service
-    assistant_response = await get_llm_response(request.message, conversation_history)
+    response_dict = await llm_service.generate_response(request.message, conversation_history)
+    assistant_response = response_dict["response"]
     
     # Save assistant response
     assistant_message = ChatMessage(

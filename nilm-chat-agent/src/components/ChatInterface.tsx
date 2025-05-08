@@ -11,6 +11,15 @@ export interface MessageType {
   timestamp: Date;
 }
 
+// Define interface for possible response object types
+interface ResponseObject {
+  text?: string;
+  message?: string;
+  content?: string;
+  answer?: string;
+  [key: string]: any; // Allow for other properties
+}
+
 const ChatInterface = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [input, setInput] = useState('');
@@ -48,15 +57,18 @@ const ChatInterface = () => {
     setInput('');
 
     try {
-      const response = await sendMessage(input);
+      // sendMessage now returns string directly due to the changes in useLLM
+      const responseText = await sendMessage(input);
+      
       const assistantMessage: MessageType = {
         id: (Date.now() + 1).toString(),
-        content: response,
+        content: responseText,
         role: 'assistant',
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
+      console.error('Error handling message:', error);
       const errorMessage: MessageType = {
         id: (Date.now() + 1).toString(),
         content: 'Sorry, I encountered an error while processing your request.',

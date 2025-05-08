@@ -27,7 +27,7 @@ const Message = ({ message }: MessageProps) => {
           {isUser ? (
             <p className="m-0">{content}</p>
           ) : (
-            <ReactMarkdown>{content}</ReactMarkdown>
+            <ReactMarkdown>{typeof content === 'string' ? content : String(content)}</ReactMarkdown>
           )}
         </div>
         <div 

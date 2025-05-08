@@ -1,28 +1,31 @@
 // src/hooks/useLLM.ts
 import { useState } from 'react';
 import axios from 'axios';
-import { getMockChatResponse } from '../services/mockService';
+
 
 // Configuration from environment variables
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true';
 const CHAT_ENDPOINT = '/api/chat';
+
+// Define interface for possible response types
+interface ResponseObject {
+  text?: string;
+  message?: string;
+  content?: string;
+  response?: string;
+  answer?: string;
+  [key: string]: any; // Allow for other properties
+}
 
 export const useLLM = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const sendMessage = async (message: string) => {
+  const sendMessage = async (message: string): Promise<string> => {
     setLoading(true);
     setError(null);
 
     try {
-      if (USE_MOCK_DATA) {
-        const response = await getMockChatResponse(message);
-        setLoading(false);
-        return response;
-      }
-
       const response = await axios.post(
         `${API_BASE_URL}${CHAT_ENDPOINT}`,
         { message },
@@ -40,7 +43,23 @@ export const useLLM = () => {
       }
 
       setLoading(false);
-      return response.data.response || response.data;
+      
+      // Extract the response text from the API response
+      const responseData = response.data.response || response.data;
+      
+      // Make sure we return a string
+      if (typeof responseData === 'string') {
+        return responseData;
+      } else if (responseData && typeof responseData === 'object') {
+        const responseObj = responseData as ResponseObject;
+        return responseObj.text || 
+               responseObj.message || 
+               responseObj.content || 
+               responseObj.answer || 
+               JSON.stringify(responseObj);
+      }
+      
+      return String(responseData);
     } catch (err) {
       console.error('API Error:', err);
       setLoading(false);
